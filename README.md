@@ -19,13 +19,12 @@ The STM simplifies a four-wheeled vehicle into a two-wheel model—one at the fr
 ### 🔸 Linear Tire Model
 
 The linear model assumes tire lateral force is directly proportional to slip angle:
-\[
-F_y = C_\alpha \cdot \alpha
-\]
+**Fᵧ = Cₐ × α**
+
 Where:
-- \( F_y \): Lateral force
-- \( C_\alpha \): Cornering stiffness
-- \( \alpha \): Slip angle
+- **Fᵧ**: Lateral force  
+- **Cₐ**: Cornering stiffness  
+- **α**: Slip angle
 
 ✅ Simple and computationally efficient  
 ❌ Valid only for small slip angles and moderate forces
@@ -35,12 +34,11 @@ Where:
 ### 🔸 Non-linear Tire Model (Pacejka "Magic Formula")
 
 This model captures tire behavior more realistically:
-\[
-F_y = D \cdot \sin \left( C \cdot \arctan \left[ B \cdot \alpha - E(B\alpha - \arctan(B\alpha)) \right] \right)
-\]
+**Fᵧ = D · sin( C · arctan[ Bα − E(Bα − arctan(Bα)) ] )**
+
 Where:
-- \( B, C, D, E \): Empirical curve-fitting parameters
-- \( \alpha \): Slip angle
+- **B, C, D, E**: Curve-fitting parameters  
+- **α**: Slip angle
 
 ✅ Captures saturation, peak force, and load sensitivity  
 ❌ More complex and computationally heavier
