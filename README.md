@@ -63,14 +63,15 @@ Where:
 
 This animation compares key vehicle dynamic responses between the linear and non-linear models:
 
-1. **Yaw Rate**  
-   - Non-linear model saturates earlier, showing realistic limitations in vehicle rotation.
-2. **Body Slip Angle (β)**  
-   - Non-linear model reflects higher slip under load, unlike the conservative linear model.
-3. **Lateral Acceleration**  
-   - Linear response grows linearly, whereas non-linear saturates reflecting real-world behavior.
-4. **Lateral Forces (Front & Rear)**  
-   - Linear model oversimplifies; the non-linear model shows asymmetric and nonlinear force behavior.
+1. The non-linear model saturates at a lateral acceleration of 0.75 [g], whereas the linear model reaches a lateral acceleration of 0.84 [g].
+
+2. The body slip angle for the non-linear model exceeds the same angle for the linear model.
+
+3. Especially, the yaw rate and body slip angle show a significant overshoot. This is a concequence of the understeer characteristics of the vehicle. With a lower understeer gradient, this overshoot is reduced.
+
+4. The largest axle forces are observed at the front axle. As a result, the vehicle will skid out at the front axle if the lateral acceleration is furthur increased. This also a consequence of the understeer characteristics of the vehicle.
+
+5. The body slip angle shows a first opposite peak in the beginning of the manoeuvre. This is due to the effect that it takes time for the vehicle to build up tyre forces. With a first immediate steering at the front axle, the local speed direction of the vehicle is oriented towards the center of the curve and then moves outward of the curve. This leads to the change in the body slip angle sign.
 
 ---
 
