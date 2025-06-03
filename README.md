@@ -79,10 +79,11 @@ This animation compares key vehicle dynamic responses between the linear and non
 📦 Vehicle Modelling Project
 ├── vehicle_modelling.py        # Main simulation script
 ├── plots/
-│   ├── lateral_acceleration.png      # Lateral acceleration vs time
-│   ├── yaw_rate.png                  # Yaw rate vs time
+│   ├── lateral_acceleration.png     # Lateral acceleration vs time
+│   ├── yaw_rate.png                 # Yaw rate vs time
 │   ├── body_slip_angle.png          # Body slip angle vs time
 │   └── lateral_forces.png           # Tyre lateral forces vs time
+│   └── subplot.png                  # Comparative subplot of all graphs   
 ├── stm.png                    # Vehicle model diagram
 ├── plots.gif                  # Simulation output animation
 └── README.md                  # Project description and documentation

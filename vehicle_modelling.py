@@ -270,7 +270,7 @@ plt.show()
 # line4_4, = ax4.plot([], [], '--', label='Rear Lateral Force Non-linear')
 # ax4.set_title("Axle Lateral Forces vs Time")
 # ax4.set_ylabel("Lateral Force (N)")
-# ax4.legend(loc='center right')
+# ax4.legend(loc='lower right')
 
 # # Set x-labels
 # for ax in axs[1, :]:
