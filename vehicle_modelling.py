@@ -17,7 +17,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
 from matplotlib.animation import FuncAnimation
-import numpy as np
 
 # === Vehicle parameters ===
 m = 1150.0       # Mass of the vehicle [in kg]
@@ -26,7 +25,7 @@ L = 2.66         # Wheelbase [in m]
 a = 1.06         # Distance of front axle from CoG [in m]
 b = L - a        # Distance of rear axle from CoG [in m]
 J = 1850.0       # Yaw moment of inertia [in kg.m2]
-eta = 0.03       # Understeer gradient
+# eta = 0.03       # Understeer gradient
 
 # == Inputs (steering angle and longitudinal velocity) == 
 
@@ -40,7 +39,6 @@ def delta(t):
         return (t - 1.0) * (4.0 * np.pi / 180) / 0.02
     else:
         return 4.0 * np.pi / 180
-
 
 # === Non-linear tyre data CF. Magic Formula model == 
 
@@ -65,148 +63,196 @@ C1 = 1.19       # Front shape factor [N]
 C2 = 1.19       # Rear shape factor [N]
 
 K1 = 14.95 * Fz0 * np.sin(2 * np.arctan(Fz1 / 2.13 / Fz0))  
-K2 = Fz2 * K1 / (Fz1 - eta * K1)
-
-B1 = K1 / C1 / D1       # Front stiffness factor
-B2 = K2 / C2 / D2       # Rear stiffness factor
 
 E1 = -1.003 - 0.537 * dFz1      # Front curvature factor
 E2 = -1.003 - 0.537 * dFz2      # Rear curvature factor
-
-# === Linear tyre model == #
-
-Cy1 = B1 * C1 * D1      # Front cornering stiffness [N/rad]
-Cy2 = B2 * C2 * D2      # Rear cornering stiffness [N/rad]
-
-
 
 # === Pacejka tire model formula ===
 def pacejka(alpha, B, C, D, E):
     Fy = D * np.sin(C * np.arctan(B * alpha - E * (B * alpha - np.arctan(B * alpha))))
     return Fy
 
-# === Non-linear model dynamics ===
-def model_nonlinear_correct(t, y):
-    v, r = y  # lateral velocity and yaw rate
-    delta_t = delta(t)
-
-    # Calculate slip angles
-    alpha_f = delta_t - (v + a * r) / Vx
-    alpha_r = - (v - b * r) / Vx
-
-    # Calculate lateral tire forces using Pacejka formula
-    Fyf = pacejka(alpha_f, B1, C1, D1, E1)
-    Fyr = pacejka(alpha_r, B2, C2, D2, E2)
-
-    # Equations of motion
-    v_dot = (Fyf + Fyr) / m - Vx * r
-    r_dot = (a * Fyf - b * Fyr) / J
-
-    return [v_dot, r_dot]
-
-# === Linear model dynamics (linear tire model) ===
-def model_linear(t, y):
-    v, r = y  # lateral velocity and yaw rate
-    delta_t = delta(t)
-
-    # Slip angles
-    alpha_f = delta_t - (v + a * r) / Vx
-    alpha_r = - (v - b * r) / Vx
-
-    # Linear lateral forces
-    Fy1 = Cy1 * alpha_f
-    Fy2 = Cy2 * alpha_r
-
-    Fy_total = Fy1 + Fy2
-    Mz_total = a * Fy1 - b * Fy2
-
-    # Equations of motion
-    v_dot = Fy_total / m - Vx * r
-    r_dot = Mz_total / J
-
-    return [v_dot, r_dot]
-
 # === Simulation parameters ===
 y0 = [0.0, 0.0]
 t_span = (0, 10)
 t_eval = np.linspace(0, 10, 2000)
+eta_values = [0.05, 0.03, -0.02]           # Multiple values of understeer gradient for sensitivity analysis
+eta_labels = ['Understeer (0.05)', 'Reference (0.03)', 'Oversteer (-0.02)']
 
-# Solve ODEs
-sol_nl = solve_ivp(model_nonlinear_correct, t_span, y0, t_eval=t_eval, method='Radau', rtol=1e-6, atol=1e-9)
-sol_l = solve_ivp(model_linear, t_span, y0, t_eval=t_eval, method='Radau', rtol=1e-6, atol=1e-9)
+results = {}
 
-# === Post-processing ===
-def process(sol, model='nonlinear'):
-    t = sol.t
-    ay = np.zeros_like(t)
-    Fyf = np.zeros_like(t)
-    Fyr = np.zeros_like(t)
+for eta in eta_values:
+    K2 = Fz2 * K1 / (Fz1 - eta * K1)
+    B1 = K1 / C1 / D1
+    B2 = K2 / C2 / D2
+    Cy1 = B1 * C1 * D1
+    Cy2 = B2 * C2 * D2
 
-    v = sol.y[0]
-    r = sol.y[1]
+    # Linear model
+    def model_linear(t, y):
+        v, r = y
+        delta_t = delta(t)
+        alpha_f = delta_t - (v + a * r) / Vx
+        alpha_r = - (v - b * r) / Vx
+        Fyf = Cy1 * alpha_f
+        Fyr = Cy2 * alpha_r
+        v_dot = (Fyf + Fyr) / m - Vx * r
+        r_dot = (a * Fyf - b * Fyr) / J
+        return [v_dot, r_dot]
 
-    for i, ti in enumerate(t):
-        delta_t = delta(ti)
-        alpha_f = delta_t - (v[i] + a * r[i]) / Vx
-        alpha_r = - (v[i] - b * r[i]) / Vx
+    # Non-linear model
+    def model_nonlinear(t, y):
+        v, r = y
+        delta_t = delta(t)
+        alpha_f = delta_t - (v + a * r) / Vx
+        alpha_r = - (v - b * r) / Vx
+        Fyf = pacejka(alpha_f, B1, C1, D1, E1)
+        Fyr = pacejka(alpha_r, B2, C2, D2, E2)
+        v_dot = (Fyf + Fyr) / m - Vx * r
+        r_dot = (a * Fyf - b * Fyr) / J
+        return [v_dot, r_dot]
 
-        if model == 'linear':
-            Fyf[i] = Cy1 * alpha_f
-            Fyr[i] = Cy2 * alpha_r
-        else:
-            Fyf[i] = pacejka(alpha_f, B1, C1, D1, E1)
-            Fyr[i] = pacejka(alpha_r, B2, C2, D2, E2)
+    sol_lin = solve_ivp(model_linear, t_span, y0, t_eval=t_eval, method='Radau', rtol=1e-6, atol=1e-9)
+    sol_nl = solve_ivp(model_nonlinear, t_span, y0, t_eval=t_eval, method='Radau', rtol=1e-6, atol=1e-9)
 
-        v_dot = (Fyf[i] + Fyr[i]) / m - Vx * r[i]
-        ay[i] = (v_dot + Vx * r[i]) / g
+    def process(sol, is_linear):
+        v, r = sol.y
+        beta = v / Vx
+        ay = np.zeros_like(v)
+        Fyf = np.zeros_like(v)
+        Fyr = np.zeros_like(v)
+        for i, ti in enumerate(sol.t):
+            delta_t = delta(ti)
+            alpha_f = delta_t - (v[i] + a * r[i]) / Vx
+            alpha_r = - (v[i] - b * r[i]) / Vx
+            if is_linear:
+                Fyf[i] = Cy1 * alpha_f
+                Fyr[i] = Cy2 * alpha_r
+            else:
+                Fyf[i] = pacejka(alpha_f, B1, C1, D1, E1)
+                Fyr[i] = pacejka(alpha_r, B2, C2, D2, E2)
+            v_dot = (Fyf[i] + Fyr[i]) / m - Vx * r[i]
+            ay[i] = (v_dot + Vx * r[i]) / g
+        return np.rad2deg(r), np.rad2deg(beta), ay, Fyf, Fyr
 
-    beta = v / Vx  # Slip angle β
+    results[(eta, 'linear')] = process(sol_lin, True)
+    results[(eta, 'nonlinear')] = process(sol_nl, False)
 
-    return beta, r, ay, Fyf, Fyr
+# === Plotting ===
+ref_eta = 0.03
+if ref_eta in eta_values:
+    ref_lin = results[(ref_eta, 'linear')]
+    ref_nl = results[(ref_eta, 'nonlinear')]
 
-# Process simulation results
-beta_nl, r_nl, ay_nl, Fyf_nl, Fyr_nl = process(sol_nl, 'nonlinear')
-beta_l, r_l, ay_l, Fyf_l, Fyr_l = process(sol_l, 'linear')
+    # === Plotting (static graphs) ===
+    plt.figure()
+    plt.plot(t_eval, ref_lin[0], label='Linear')
+    plt.plot(t_eval, ref_nl[0], label='Non-linear')
+    plt.ylabel('Yaw Rate (deg/s)')
+    plt.xlabel('Time (s)')
+    plt.title('Yaw Rate vs Time')
+    plt.legend()
+    plt.grid(True)
 
-# === Plotting (static graphs) ===
-plt.figure()
-plt.plot(sol_l.t, np.rad2deg(r_l), label='Linear')
-plt.plot(sol_nl.t, np.rad2deg(r_nl), label='Non-linear')
-plt.ylabel('Yaw Rate (deg/s)')
-plt.xlabel('Time (s)')
-plt.title('Yaw Rate vs Time')
-plt.legend()
-plt.grid(True)
+    plt.figure()
+    plt.plot(t_eval, ref_lin[1], label='Linear')
+    plt.plot(t_eval, ref_nl[1], label='Non-linear')
+    plt.ylabel('Body Slip Angle β (deg)')
+    plt.xlabel('Time (s)')
+    plt.title('Body Slip Angle vs Time')
+    plt.legend()
+    plt.grid(True)
 
-plt.figure()
-plt.plot(sol_l.t, np.rad2deg(beta_l),  label='Linear')
-plt.plot(sol_nl.t, np.rad2deg(beta_nl), label='Non-linear')
-plt.ylabel('Body Slip Angle β (deg)')
-plt.xlabel('Time (s)')
-plt.title('Body Slip Angle vs Time')
-plt.legend()
-plt.grid(True)
+    plt.figure()
+    plt.plot(t_eval, ref_lin[2], label='Linear')
+    plt.plot(t_eval, ref_nl[2], label='Non-linear')
+    plt.ylabel('Lateral Acceleration (g)')
+    plt.xlabel('Time (s)')
+    plt.title('Lateral Acceleration vs Time')
+    plt.legend()
+    plt.grid(True)
 
-plt.figure()
-plt.plot(sol_l.t, ay_l, label='Linear')
-plt.plot(sol_nl.t, ay_nl, label='Non-linear')
-plt.ylabel('Lateral Acceleration (g)')
-plt.xlabel('Time (s)')
-plt.title('Lateral Acceleration vs Time')
-plt.legend()
-plt.grid(True)
+    plt.figure()
+    plt.plot(t_eval, ref_lin[3], label='Front Lateral Force, Linear')
+    plt.plot(t_eval, ref_nl[3], label='Front Lateral Force, Non-linear')
+    plt.plot(t_eval, ref_lin[4], '--', label='Rear Lateral Force, Linear')
+    plt.plot(t_eval, ref_nl[4], '--', label='Rear Lateral Force, Non-linear')
+    plt.ylabel('Lateral Force (N)')
+    plt.xlabel('Time (s)')
+    plt.title('Axle Lateral Forces vs Time')
+    plt.legend()
+    plt.grid(True)
 
-plt.figure()
-plt.plot(sol_l.t, Fyf_l, label='Front Lateral Force, Linear')
-plt.plot(sol_nl.t, Fyf_nl, label='Front Lateral Force, Non-linear')
-plt.plot(sol_l.t, Fyr_l,  '--', label='Rear Lateral Force, Linear')
-plt.plot(sol_nl.t, Fyr_nl, '--', label='Rear Lateral Force, Non-linear')
-plt.ylabel('Lateral Force (N)')
-plt.xlabel('Time (s)')
-plt.title('Axle Lateral Forces vs Time')
-plt.legend()
-plt.grid(True)
+# Sensitivity analysis plots
+metrics = [
+    (0, 'Yaw Rate', 'deg/s'),
+    (2, 'Lateral Acceleration', 'g'),
+    (1, 'Body Slip Angle', 'deg')
+]
 
+for metric_idx, label, unit in metrics:
+    fig, axs = plt.subplots(2, 1, figsize=(12, 8), sharex=True)
+    for eta in eta_values:
+        axs[0].plot(t_eval, results[(eta, 'linear')][metric_idx], label=eta_labels[eta_values.index(eta)])
+        axs[1].plot(t_eval, results[(eta, 'nonlinear')][metric_idx], label=eta_labels[eta_values.index(eta)])
+    axs[0].set_title(f'{label} Sensitivity - Linear')
+    axs[1].set_title(f'{label} Sensitivity - Nonlinear')
+    for ax in axs:
+        ax.set_ylabel(f'{label} ({unit})')
+        ax.set_xlabel('Time (s)')
+        ax.legend()
+        ax.grid(True)
+    plt.tight_layout()
+
+# Tyre force sensitivity
+fig, axs = plt.subplots(2, 1, figsize=(12, 8), sharex=True)
+axs[0].set_title('Tyre Force Sensitivity - Linear')
+axs[1].set_title('Tyre Force Sensitivity - Nonlinear')
+
+# Store handles in separate lists for ordering
+front_handles_top, rear_handles_top = [], []
+front_handles_bottom, rear_handles_bottom = [], []
+
+# Plot and store front curves first
+for eta, label in zip(eta_values, eta_labels):
+    front_lin = results[(eta, 'linear')][3]
+    front_nl = results[(eta, 'nonlinear')][3]
+
+    h_front_lin, = axs[0].plot(t_eval, front_lin, label=f'Front, {label}')
+    h_front_nl,  = axs[1].plot(t_eval, front_nl, label=f'Front, {label}')
+
+    front_handles_top.append(h_front_lin)
+    front_handles_bottom.append(h_front_nl)
+
+# Plot and store rear curves after
+for eta, label in zip(eta_values, eta_labels):
+    rear_lin = results[(eta, 'linear')][4]
+    rear_nl  = results[(eta, 'nonlinear')][4]
+
+    h_rear_lin, = axs[0].plot(t_eval, rear_lin, '--', label=f'Rear, {label}')
+    h_rear_nl,  = axs[1].plot(t_eval, rear_nl, '--', label=f'Rear, {label}')
+
+    rear_handles_top.append(h_rear_lin)
+    rear_handles_bottom.append(h_rear_nl)
+
+# Set legends with correct order: fronts first, then rears
+axs[0].legend(handles=front_handles_top + rear_handles_top)
+axs[1].legend(handles=front_handles_bottom + rear_handles_bottom)
+
+for ax in axs:
+    ax.set_ylabel('Force (N)')
+    ax.set_xlabel('Time (s)')
+    ax.grid(True)
+
+plt.tight_layout()
+
+for ax in axs:
+    ax.set_ylabel('Force (N)')
+    ax.set_xlabel('Time (s)')
+    ax.legend()
+    ax.grid(True)
+
+plt.tight_layout()
 plt.show()
 
 # # === Plotting (animated graphs) ===
