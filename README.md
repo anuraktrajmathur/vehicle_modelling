@@ -87,7 +87,7 @@ Each graph below highlights how this gradient affects different aspects of the v
 
 This plot shows the body slip angle (β), which indicates the deviation between the vehicle's velocity vector and heading.
 
-Linear model (top): Predicts stable and gradual increase in slip angle across all η values.
+Linear model (top): Predicts stable and gradual increase in body slip angle across all η values.
 
 Nonlinear model (bottom): Captures significant instability and oscillations in the oversteer case, indicating the onset of loss of control—something the linear model cannot predict.
 
