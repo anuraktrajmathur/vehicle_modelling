@@ -16,9 +16,9 @@ The STM simplifies a four-wheeled vehicle into a two-wheel model—one at the fr
 
 ---
 
-### 🔸 Linear Tire Model
+### 🔸 Linear Tyre Model
 
-The linear model assumes tire lateral force is directly proportional to slip angle:
+The linear model assumes tyre lateral force is directly proportional to slip angle:
 **Fᵧ = Cₐ × α**
 
 Where:
@@ -31,9 +31,9 @@ Where:
 
 ---
 
-### 🔸 Non-linear Tire Model (Pacejka "Magic Formula")
+### 🔸 Non-linear Tyre Model (Pacejka "Magic Formula")
 
-This model captures tire behavior more realistically:
+This model captures tyre behavior more realistically:
 **Fᵧ = D · sin( C · arctan[ Bα − E(Bα − arctan(Bα)) ] )**
 
 Where:
@@ -74,7 +74,7 @@ This animation compares key vehicle dynamic responses between the linear and non
 ---
 
 ## Sensitivity Analysis
-This section presents a **sensitivity analysis** using both linear and nonlinear tire models. The primary variable under investigation is the understeer gradient (η), with three distinct cases:
+This section presents a **sensitivity analysis** using both linear and nonlinear tyre models. The primary variable under investigation is the understeer gradient (η), with three distinct cases:
 
 - Understeer (η = 0.05)
 - Close to Neutral/Reference (η = 0.03)
@@ -83,7 +83,7 @@ This section presents a **sensitivity analysis** using both linear and nonlinear
 Each graph below highlights how this gradient affects different aspects of the vehicle's dynamic response, and reveals the limitations of the linear model compared to a more realistic nonlinear model.
 
 1. Body Slip Angle (β)
-[body_slip](./Plots/sensitivity_analysis/beta_sa.png)
+![body_slip](./Plots/sensitivity_analysis/beta_sa.png)
 
 This plot shows the body slip angle (β), which indicates the deviation between the vehicle's velocity vector and heading.
 
@@ -94,7 +94,7 @@ Nonlinear model (bottom): Captures significant instability and oscillations in t
 Key Insight: The nonlinear model is essential for capturing dynamic instability in oversteering conditions.
 
 2. Lateral Acceleration 
-[lateral_acc](./Plots/sensitivity_analysis/lateral_acc_sa.png)
+![lateral_acc](./Plots/sensitivity_analysis/lateral_acc_sa.png)
 
 This graph illustrates the vehicle’s lateral acceleration, which directly reflects cornering performance.
 
@@ -105,18 +105,18 @@ Nonlinear model (bottom): Highlights reduced peak performance and oscillations u
 Key Insight: Nonlinear effects are critical for predicting performance limits and transient behavior.
 
 3. Tyre Lateral Forces
-[lateral_forces](/Plots/sensitivity_analysis/lateral_acc_sa.png)
+![lateral_forces](/Plots/sensitivity_analysis/lateral_acc_sa.png)
 
-This plot displays the front and rear lateral tire forces for various understeer gradients.
+This plot displays the front and rear lateral tyre forces for various understeer gradients.
 
 Linear model (top): Shows a linear rise in forces without saturation.
 
-Nonlinear model (bottom): Reveals force saturation and complex rear tire behavior under oversteer, indicating realistic tire grip limits.
+Nonlinear model (bottom): Reveals force saturation and complex rear tyre behavior under oversteer, indicating realistic tyre grip limits.
 
-Key Insight: Linear models oversimplify tire behavior and fail to predict saturation or load transfer effects.
+Key Insight: Linear models oversimplify tyre behavior and fail to predict saturation or load transfer effects.
 
 4. Yaw Rate
-[yaw_rate](./Plots/sensitivity_analysis/yaw_rate_sa.png)
+![yaw_rate](./Plots/sensitivity_analysis/yaw_rate_sa.png)
 
 This plot tracks the yaw rate, or the rotational speed of the vehicle about its vertical axis.
 
@@ -130,7 +130,7 @@ Key Insight: Linear models underestimate yaw dynamics during oversteer, missing 
 
 This sensitivity analysis demonstrates the critical limitations of linear modeling in high lateral acceleration or oversteering scenarios. Nonlinear models are necessary to predict:
 
-- Tire force saturation
+- Tyre force saturation
 - Oscillatory or divergent behavior
 - Instability under aggressive maneuvers
 
@@ -162,7 +162,7 @@ Use of nonlinear models ensures more robust vehicle design, controller tuning, a
 
 ## 📌 Conclusion
 
-This project demonstrates the importance of accurate tire modeling in vehicle dynamics simulations. While the linear model is suitable for small-angle, low-demand maneuvers, the non-linear Pacejka model provides crucial fidelity under aggressive steering or high-speed conditions.
+This project demonstrates the importance of accurate tyre modeling in vehicle dynamics simulations. While the linear model is suitable for small-angle, low-demand maneuvers, the non-linear Pacejka model provides crucial fidelity under aggressive steering or high-speed conditions.
 
 ---
 
