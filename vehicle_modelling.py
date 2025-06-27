@@ -359,3 +359,121 @@ plt.show()
 
 # # Save animation
 # ani.save("plots.gif", writer='pillow', fps=30, dpi=150)
+
+# # === Plotting Sensitivity Analysis (animated graphs) ===
+# eta_colors = ['tab:red', 'tab:blue', 'tab:green']
+# n_frames = len(t_eval)
+
+# # === Helper function for per-model axis limits
+# def get_model_axis_limits(index, model):
+#     all_vals = []
+#     for eta in eta_values:
+#         all_vals.extend(results[(eta, model)][index])
+#     min_val = min(all_vals)
+#     max_val = max(all_vals)
+#     margin = 0.1 * (max_val - min_val) if max_val != min_val else 1.0
+#     return min_val - margin, max_val + margin
+
+# # === Animate Yaw Rate, Lateral Acceleration, Slip Angle
+# metrics = [
+#     (0, 'Yaw Rate', 'deg/s'),
+#     (2, 'Lateral Acceleration', 'g'),
+#     (1, 'Body Slip Angle', 'deg')
+# ]
+
+# for metric_idx, label, unit in metrics:
+#     fig, axs = plt.subplots(2, 1, figsize=(12, 8), sharex=True)
+#     lines = [[], []]  # Linear, Nonlinear
+
+#     # Set x and y limits separately
+#     axs[0].set_xlim(t_eval[0], t_eval[-1])  # Linear
+#     axs[1].set_xlim(t_eval[0], t_eval[-1])  # Nonlinear
+
+#     ymin_lin, ymax_lin = get_model_axis_limits(metric_idx, 'linear')
+#     ymin_nl,  ymax_nl  = get_model_axis_limits(metric_idx, 'nonlinear')
+
+#     axs[0].set_ylim(ymin_lin, ymax_lin)
+#     axs[1].set_ylim(ymin_nl,  ymax_nl)
+
+#     # Labels and titles
+#     axs[0].set_title(f'{label} Sensitivity - Linear')
+#     axs[1].set_title(f'{label} Sensitivity - Nonlinear')
+#     for ax in axs:
+#         ax.set_ylabel(f'{label} ({unit})')
+#         ax.set_xlabel('Time (s)')
+#         ax.grid(True)
+
+#     # Lines for each eta
+#     for i, eta in enumerate(eta_values):
+#         l1, = axs[0].plot([], [], label=eta_labels[i], color=eta_colors[i])
+#         l2, = axs[1].plot([], [], label=eta_labels[i], color=eta_colors[i])
+#         lines[0].append(l1)
+#         lines[1].append(l2)
+
+#     axs[0].legend(loc='lower right')
+#     axs[1].legend(loc='lower right')
+#     plt.tight_layout()
+
+#     # Animation function
+#     def animate(i):
+#         for j, eta in enumerate(eta_values):
+#             lines[0][j].set_data(t_eval[:i], results[(eta, 'linear')][metric_idx][:i])
+#             lines[1][j].set_data(t_eval[:i], results[(eta, 'nonlinear')][metric_idx][:i])
+#         return lines[0] + lines[1]
+
+#     ani = FuncAnimation(fig, animate, frames=n_frames, interval=10, blit=True, repeat=False)
+#     # Save animation as GIF named by the metric label, e.g. "yaw_rate_animation.gif"
+#     filename = f"{label.lower().replace(' ', '_')}_animation.gif"
+#     ani.save(filename, writer='pillow', fps=30)
+#     plt.close(fig)  # Close the figure to prevent it from showing
+#     # plt.show()
+
+# # === Animate Tyre Force Sensitivity (Front & Rear)
+# fig, axs = plt.subplots(2, 1, figsize=(12, 8), sharex=True)
+# lines_force = [[], []]  # Linear, Nonlinear
+
+# # Compute limits separately for front & rear per model
+# fmin_lin = min(get_model_axis_limits(3, 'linear')[0], get_model_axis_limits(4, 'linear')[0])
+# fmax_lin = max(get_model_axis_limits(3, 'linear')[1], get_model_axis_limits(4, 'linear')[1])
+# fmin_nl  = min(get_model_axis_limits(3, 'nonlinear')[0], get_model_axis_limits(4, 'nonlinear')[0])
+# fmax_nl  = max(get_model_axis_limits(3, 'nonlinear')[1], get_model_axis_limits(4, 'nonlinear')[1])
+
+# axs[0].set_xlim(t_eval[0], t_eval[-1])
+# axs[1].set_xlim(t_eval[0], t_eval[-1])
+# axs[0].set_ylim(fmin_lin, fmax_lin)
+# axs[1].set_ylim(fmin_nl, fmax_nl)
+
+# axs[0].set_title('Tyre Force Sensitivity - Linear')
+# axs[1].set_title('Tyre Force Sensitivity - Nonlinear')
+
+# for ax in axs:
+#     ax.set_ylabel('Force (N)')
+#     ax.set_xlabel('Time (s)')
+#     ax.grid(True)
+
+# for i, (eta, label, color) in enumerate(zip(eta_values, eta_labels, eta_colors)):
+#     # Linear
+#     fl, = axs[0].plot([], [], label=f'Front, {label}', color=color)
+#     rl, = axs[0].plot([], [], '--', label=f'Rear, {label}', color=color)
+#     # Nonlinear
+#     fn, = axs[1].plot([], [], label=f'Front, {label}', color=color)
+#     rn, = axs[1].plot([], [], '--', label=f'Rear, {label}', color=color)
+#     lines_force[0].extend([fl, rl])
+#     lines_force[1].extend([fn, rn])
+
+# axs[0].legend(loc='upper left')
+# axs[1].legend(loc='lower right')
+# plt.tight_layout()
+
+# # Animation function for forces
+# def animate_force(i):
+#     for j, eta in enumerate(eta_values):
+#         lines_force[0][2*j].set_data(t_eval[:i], results[(eta, 'linear')][3][:i])    # Front linear
+#         lines_force[0][2*j+1].set_data(t_eval[:i], results[(eta, 'linear')][4][:i])  # Rear linear
+#         lines_force[1][2*j].set_data(t_eval[:i], results[(eta, 'nonlinear')][3][:i]) # Front non-linear
+#         lines_force[1][2*j+1].set_data(t_eval[:i], results[(eta, 'nonlinear')][4][:i]) # Rear non-linear
+#     return lines_force[0] + lines_force[1]
+
+# ani_force = FuncAnimation(fig, animate_force, frames=n_frames, interval=10, blit=True, repeat=False)
+# ani_force.save('tyre_force_animation.gif', writer='pillow', fps=30)
+# plt.close(fig)

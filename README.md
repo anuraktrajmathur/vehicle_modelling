@@ -83,7 +83,7 @@ This section presents a **sensitivity analysis** using both linear and nonlinear
 Each graph below highlights how this gradient affects different aspects of the vehicle's dynamic response, and reveals the limitations of the linear model compared to a more realistic nonlinear model.
 
 ## 1. Body Slip Angle (β)
-![body_slip](./Plots/sensitivity_analysis/beta_sa.png)
+![body_slip](./Plots/sensitivity_analysis/animations/body_slip_angle_animation.gif)
 
 This plot shows the body slip angle (β), which indicates the deviation between the vehicle's velocity vector and heading.
 
@@ -94,7 +94,7 @@ Nonlinear model (bottom): Captures significant instability and oscillations in t
 Key Insight: The nonlinear model is essential for capturing dynamic instability in oversteering conditions.
 
 ## 2. Lateral Acceleration 
-![lateral_acc](./Plots/sensitivity_analysis/lateral_acc_sa.png)
+![lateral_acc](./Plots/sensitivity_analysis/animations/lateral_acceleration_animation.gif)
 
 This graph illustrates the vehicle’s lateral acceleration, which directly reflects cornering performance.
 
@@ -105,7 +105,7 @@ Nonlinear model (bottom): Highlights reduced peak performance and oscillations u
 Key Insight: Nonlinear effects are critical for predicting performance limits and transient behavior.
 
 ## 3. Tyre Lateral Forces
-![lateral_forces](/Plots/sensitivity_analysis/fy_sa.png)
+![lateral_forces](/Plots/sensitivity_analysis/animations/tyre_force_animation.gif)
 
 This plot displays the front and rear lateral tyre forces for various understeer gradients.
 
@@ -116,7 +116,7 @@ Nonlinear model (bottom): Reveals force saturation and complex rear tyre behavio
 Key Insight: Linear models oversimplify tyre behavior and fail to predict saturation or load transfer effects.
 
 ## 4. Yaw Rate
-![yaw_rate](./Plots/sensitivity_analysis/yaw_rate_sa.png)
+![yaw_rate](./Plots/sensitivity_analysis/animations/yaw_rate_animation.gif)
 
 This plot tracks the yaw rate, or the rotational speed of the vehicle about its vertical axis.
 
@@ -153,7 +153,12 @@ Use of nonlinear models ensures more robust vehicle design, controller tuning, a
 │       └── beta_sa.png              # Body slip angle sensitivity analysis
 │       └── fy_sa.png                # Tyre lateral force sensitivity analysis
 │       └── lateral_acc_sa.png       # Lateral acceleration sensitivity analysis
-│       └── yaw_rate_sa.png          # Yaw rate sensitivity analysis         
+│       └── yaw_rate_sa.png          # Yaw rate sensitivity analysis
+│       └── animations/
+│           └── body_slip_angle_animation.gif           # Body slip angle sensitivity analysis animation
+│           └── lateral_acceleration_animation.gif      # Lateral acceleration sensitivity analysis animation
+│           └── tyre_force_animation.gif                # Tyre lateral force sensitivity analysis animation
+│           └── yaw_rate_animation.gif                  # Yaw rate sensitivity analysis animation
 ├── stm.png                    # Vehicle model diagram
 ├── plots.gif                  # Simulation output animation
 └── README.md                  # Project description and documentation
